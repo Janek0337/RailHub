@@ -1,4 +1,4 @@
-package com.example.railhub.controllers;
+package com.example.railhub.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;

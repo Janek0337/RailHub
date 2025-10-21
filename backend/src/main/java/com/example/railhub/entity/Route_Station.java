@@ -11,6 +11,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "route_station")
 public class Route_Station {
 
     @EmbeddedId
@@ -37,4 +38,8 @@ public class Route_Station {
     @NotNull
     @Column(name = "stop_order", nullable = false)
     private int stopOrder;
+
+    @NotNull
+    @Column(name = "route_kilometer", nullable = false)
+    private int routeKilometer;
 }

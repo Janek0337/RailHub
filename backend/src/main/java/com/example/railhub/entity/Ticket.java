@@ -3,7 +3,11 @@ package com.example.railhub.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
+import java.math.BigDecimal;
+import java.time.LocalTime;
+
 @Entity
+@Table(name = "tickets")
 public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,4 +34,12 @@ public class Ticket {
     @ManyToOne
     @JoinColumn(name = "train_id", nullable = false)
     private Train train;
+
+    @NotNull
+    @Column(name = "price", nullable = false)
+    private BigDecimal price;
+
+    @NotNull
+    @Column(name = "purchase_time", nullable = false)
+    private LocalTime purchaseTime;
 }

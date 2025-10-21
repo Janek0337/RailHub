@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 
 @Entity
+@Table(name = "stations")
 public class Station {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
