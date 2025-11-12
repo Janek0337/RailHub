@@ -2,11 +2,14 @@ package com.example.railhub.service;
 
 import com.example.railhub.dto.TicketTypeDTO;
 import com.example.railhub.entity.Ticket_Type;
+import com.example.railhub.exceptions.ResourceNotFoundException;
 import com.example.railhub.mapper.TicketTypeMapper;
 import com.example.railhub.repository.TicketTypeRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,9 +32,16 @@ public class TicketTypeService {
     }
 
     public void deleteTicketType(Long id) {
-        if (!ticketTypeRepository.existsById(id)) {
-            System.out.println("Ticket Type not found");
-        }
         ticketTypeRepository.deleteById(id);
+    }
+
+    public TicketTypeDTO editTicketType(Long id, TicketTypeDTO ticketTypeDTO) {
+
+        Ticket_Type ticketTypeToUpdate = ticketTypeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Nie znaleziono typu biletu o ID: " + id));
+
+        ticketTypeToUpdate = ticketTypeMapper.toEntity(ticketTypeDTO);
+        Ticket_Type updatedEntity = ticketTypeRepository.save(ticketTypeToUpdate);
+        return ticketTypeMapper.toDTO(updatedEntity);
     }
 }

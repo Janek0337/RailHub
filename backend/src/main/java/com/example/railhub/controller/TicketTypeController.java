@@ -29,9 +29,18 @@ public class TicketTypeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(savedTicketType);
     }
 
-    @DeleteMapping
-    public ResponseEntity<TicketTypeDTO> deleteTicketType(@RequestBody TicketTypeDTO ticketTypeDTO) {
-        ticketTypeService.deleteTicketType(ticketTypeDTO.getTicketTypeId());
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTicketType(@PathVariable Long id) {
+        ticketTypeService.deleteTicketType(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TicketTypeDTO> editTicketType(
+            @PathVariable Long id,
+            @RequestBody TicketTypeDTO ticketTypeDTO) {
+
+        TicketTypeDTO updatedTicketType = ticketTypeService.editTicketType(id, ticketTypeDTO);
+        return ResponseEntity.ok(updatedTicketType);
     }
 }

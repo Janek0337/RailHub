@@ -70,7 +70,7 @@ export default {
             // Przygotowujemy dane do wysłania
             const payload = { ...this.localData };
             if (isEditMode) {
-                payload.ticketTypeId = this.initialData.id; // Używamy nazwy pola z encji Javy
+                payload.ticketTypeId = this.initialData.id;
             }
 
             fetch(url, {

@@ -24,6 +24,29 @@ export default {
         }
     },
     methods: {
+        showBrowserNotification(title, options) {
+            // 1. Sprawdź, czy przeglądarka w ogóle wspiera powiadomienia
+            if (!("Notification" in window)) {
+                console.warn("Ta przeglądarka nie wspiera powiadomień desktopowych.");
+                // Możemy użyć naszego wewnętrznego systemu jako alternatywy
+                this.emitter.emit('notify', { message: title, type: 'success' });
+                return;
+            }
+
+            // 2. Sprawdź, czy mamy już pozwolenie
+            if (Notification.permission === "granted") {
+                // Jeśli tak, utwórz powiadomienie
+                new Notification(title, options);
+            } else if (Notification.permission !== "denied") {
+                // Jeśli nie, poproś o pozwolenie
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        new Notification(title, options);
+                    }
+                });
+            }
+            // Jeśli pozwolenie zostało odrzucone (denied), nic nie możemy zrobić.
+        },
         handleSubmit() {
             const datataToSend = {
                 'login': this.login,
@@ -49,7 +72,12 @@ export default {
         .then(data => {
             if (data && data.token) {
                 localStorage.setItem('user_token', data.token)
-                console.log('Udane logowanie')
+                console.log('Udane logowanie');
+
+                // Wywołaj powiadomienie przeglądarki
+                this.showBrowserNotification('Logowanie udane!', { body: `Witaj, ${this.login}!` });
+                // Możesz też zostawić powiadomienie w aplikacji dla spójności
+                this.emitter.emit('notify', { message: 'Zalogowano pomyślnie!', type: 'success' });
             }
             else {
                 throw new Error("No token")

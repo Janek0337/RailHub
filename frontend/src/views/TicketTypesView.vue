@@ -70,7 +70,7 @@ export default {
             this.ticket_types.push(newItem);
             this.closeModal();
         },
-        handleTicketUpdated(updatedTicket) {
+        handleItemUpdated(updatedTicket) {
             const index = this.ticket_types.findIndex(t => t.ticketTypeId === updatedTicket.ticketTypeId);
             if (index !== -1) {
                 this.ticket_types[index] = updatedTicket;
@@ -89,7 +89,10 @@ export default {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${jwtToken}`
-                }
+                },
+                body: JSON.stringify({
+                  'id': itemToDelete.ticketTypeId
+                })
             })
             .then(res => {
                 if (!res.ok) {
