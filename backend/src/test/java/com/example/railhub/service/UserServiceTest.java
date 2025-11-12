@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import com.example.railhub.entity.Role;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -48,7 +49,7 @@ class UserServiceTest {
         User userEntity = new User();
         userEntity.setLogin("JohnParadox");
         userEntity.setPassword("passwd");
-        userEntity.setRole("ADMIN");
+        userEntity.setRole(Role.ADMIN);
 
         when(userMapper.toEntity(userToRegister)).thenReturn(userEntity);
         when(passwordEncoder.encode("passwd")).thenReturn("encoded_passwd");
