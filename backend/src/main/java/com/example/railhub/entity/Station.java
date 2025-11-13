@@ -19,6 +19,6 @@ public class Station {
     private Long stationId;
 
     @NotBlank
-    @Column(name = "station_name", nullable = false)
+    @Column(name = "station_name", nullable = false, unique = true)
     private String stationName;
 }

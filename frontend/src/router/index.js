@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import SignupForm from '@/components/SignupForm.vue'
 import NotAuthorised from '@/views/NotAuthorised.vue'
 import TicketTypesView from '../views/TicketTypesView.vue'
+import StationsView from '../views/StationsView.vue'
 
 const routes = [
   {
@@ -19,6 +20,11 @@ const routes = [
     path: '/ticket-types',
     name: 'ticket-types',
     component: TicketTypesView
+  },
+  {
+    path: '/stations',
+    name: 'stations',
+    component: StationsView
   },
   {
     path: '/not-authorised',

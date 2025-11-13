@@ -40,6 +40,11 @@ export default {
         apiEndpoint: {
             type: String,
             required: true
+        },
+        // Klucz identyfikatora
+        idKey: {
+            type: String,
+            required: true
         }
     },
     data() {
@@ -70,7 +75,7 @@ export default {
             // Przygotowujemy dane do wysłania
             const payload = { ...this.localData };
             if (isEditMode) {
-                payload.ticketTypeId = this.initialData.id;
+                payload[this.idKey] = this.initialData.id;
             }
 
             fetch(url, {
@@ -82,10 +87,14 @@ export default {
                 body: JSON.stringify(payload)
             })
             .then(res => {
-                if (!res.ok) {
-                    throw new Error(`Błąd operacji ${method}`);
+                if (res.ok) {
+                    return res.json();
+                } else {
+                    return res.json().then(errorBody => {
+                        const error = new Error(errorBody.message || `Błąd operacji ${method}`);
+                        throw error;
+                    });
                 }
-                return res.json();
             })
             .then(responseData => {
                 console.log(`Operacja ${method} zakończona sukcesem`, responseData);
@@ -93,8 +102,8 @@ export default {
                 this.$emit(isEditMode ? 'item-updated' : 'item-created', responseData);
             })
             .catch(err => {
-                console.error(err);
-                this.$emit('submission-failed');
+                console.error("Błąd:", err.message);
+                this.$emit('submission-failed', err.message);
             });
         }
     }

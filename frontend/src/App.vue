@@ -3,7 +3,8 @@
     <router-link to="/">Home</router-link> |
     <router-link to="/login">Login</router-link> |
     <router-link to="/ticket-types">Ticket types</router-link> |
-    <router-link to="/not-authorised">NAT</router-link>
+    <router-link to="/not-authorised">NAT</router-link> |
+    <router-link to="/stations">Stations</router-link>
   </nav>
   <router-view/>
 </template>
