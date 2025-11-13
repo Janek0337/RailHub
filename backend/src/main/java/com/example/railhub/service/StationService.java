@@ -47,7 +47,7 @@ public class StationService {
         String newName = stationDTO.getStationName().toUpperCase();
         List<Station> lookup = stationRepository.findByStationName(newName);
         boolean nameTakenByAnother = lookup.stream()
-                .anyMatch(station -> !station.getStationId().equals(id));
+                .anyMatch(station -> !station.getStationName().equals(newName));
         if (nameTakenByAnother) {
             throw new IllegalArgumentException("Stacja o nazwie: \'" + newName + "\' już istnieje");
         }
