@@ -1,14 +1,11 @@
 package com.example.railhub.controller;
 
 import com.example.railhub.dto.TicketTypeDTO;
-import com.example.railhub.entity.Ticket_Type;
-import com.example.railhub.mapper.TicketTypeMapper;
 import com.example.railhub.service.TicketTypeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -40,7 +37,7 @@ public class TicketTypeController {
             @PathVariable Long id,
             @RequestBody TicketTypeDTO ticketTypeDTO) {
 
-        TicketTypeDTO updatedTicketType = ticketTypeService.editTicketType(id, ticketTypeDTO);
+        TicketTypeDTO updatedTicketType = ticketTypeService.updateTicketType(id, ticketTypeDTO);
         return ResponseEntity.ok(updatedTicketType);
     }
 }
