@@ -3,7 +3,7 @@
         :resourceName="'stacja'"
         :resourceNamePlural="'Stacje'"
         :apiEndpoint="'http://localhost:6767/admin/stations'"
-        :formFields="stationFields"
+        :fields="stationFields"
         :displayFields="stationDisplayFields"
         :idKey="'stationId'"
     />

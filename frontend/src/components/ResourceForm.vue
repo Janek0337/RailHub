@@ -1,8 +1,23 @@
 <template>
     <form @submit.prevent="handleSubmit">
+        <div v-if="mode === 'edit' && initialData.id" class="form-group">
+            <label for="id">ID</label>
+            <input type="text" id="id" :value="initialData.id" disabled>
+        </div>
         <div v-for="field in fields" :key="field.name" class="form-group">
             <label :for="field.name">{{ field.label }}</label>
-            <input 
+            <select
+                v-if="field.type === 'select'"
+                :id="field.name"
+                v-model="localData[field.name]"
+                required
+            >
+                <option v-for="option in field.options" :key="option.value" :value="option.value">
+                    {{ option.text }}
+                </option>
+            </select>
+            <input
+                v-else
                 :type="field.type || 'text'"
                 :id="field.name"
                 v-model="localData[field.name]"
@@ -122,6 +137,12 @@ input {
     width: 100%;
     padding: 8px;
     box-sizing: border-box;
+}
+input:disabled {
+    background-color: #eeeeee;
+    cursor: not-allowed;
+    border: 1px solid #ccc;
+    color: #555;
 }
 .form-actions {
     text-align: right;

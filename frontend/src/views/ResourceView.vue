@@ -21,7 +21,7 @@
             <h2>{{ modalMode === 'create' ? 'Dodaj nowy ' + resourceName : 'Edytuj ' + resourceName }}</h2>
             <ResourceForm
                 :key="modalMode + (editingItem[idKey] || 'new')"
-                :fields="formFields"
+                :fields="fields"
                 :initial-data="editingItem"
                 :mode="modalMode"
                 :api-endpoint="apiEndpoint"
@@ -46,7 +46,7 @@ export default {
         resourceName: { type: String, required: true },
         resourceNamePlural: { type: String, required: true },
         apiEndpoint: { type: String, required: true },
-        formFields: { type: Array, required: true },
+        fields: { type: Array, required: true },
         displayFields: { type: Array, required: true },
         idKey: { type: String, required: true }
     },
@@ -61,6 +61,13 @@ export default {
     methods: {
         getItemValue(item, field) {
             const value = item[field.key];
+            const fieldDefinition = this.fields.find(f => f.name === field.key);
+
+            if (fieldDefinition && fieldDefinition.type === 'select' && fieldDefinition.options) {
+                const option = fieldDefinition.options.find(o => o.value === value);
+                return option ? option.text : value;
+            }
+
             if (field.suffix) {
                 return `${value}${field.suffix}`;
             }

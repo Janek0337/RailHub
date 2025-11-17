@@ -3,7 +3,7 @@
         :resourceName="'pociąg'"
         :resourceNamePlural="'Pociągi'"
         :apiEndpoint="'http://localhost:6767/admin/trains'"
-        :formFields="trainFields"
+        :fields="trainFields"
         :displayFields="trainDisplayFields"
         :idKey="'id'"
     />

@@ -5,6 +5,7 @@ import NotAuthorised from '@/views/NotAuthorised.vue'
 import TicketTypesView from '../views/TicketTypesView.vue'
 import StationsView from '../views/StationsView.vue'
 import TrainsView from '../views/TrainsView.vue'
+import RoutesView from '../views/RoutesView.vue'
 
 const routes = [
   {
@@ -31,6 +32,11 @@ const routes = [
     path: '/trains',
     name: 'trains',
     component: TrainsView
+  },
+  {
+    path: '/routes',
+    name: 'routes',
+    component: RoutesView
   },
   {
     path: '/not-authorised',

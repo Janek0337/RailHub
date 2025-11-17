@@ -3,7 +3,7 @@
         :resourceName="'typ biletu'"
         :resourceNamePlural="'Typy biletów'"
         :apiEndpoint="'http://localhost:6767/admin/ticket-types'"
-        :formFields="ticketTypeFields"
+        :fields="ticketTypeFields"
         :displayFields="ticketTypeDisplayFields"
         :idKey="'ticketTypeId'"
     />
