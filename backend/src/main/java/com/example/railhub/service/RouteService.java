@@ -21,8 +21,6 @@ import java.util.Optional;
 @AllArgsConstructor
 public class RouteService {
     private RouteRepository routeRepository;
-    private RouteMapper routeMapper;
-    private TrainRepository trainRepository;
     private RouteStationRepository routeStationRepository;
     private StationRepository stationRepository;
 

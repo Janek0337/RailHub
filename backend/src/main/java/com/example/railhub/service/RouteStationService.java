@@ -2,11 +2,15 @@ package com.example.railhub.service;
 
 import com.example.railhub.dto.RouteStationDTO;
 import com.example.railhub.entity.Route_Station;
+import com.example.railhub.entity.Station;
+import com.example.railhub.exceptions.ResourceNotFoundException;
 import com.example.railhub.mapper.RouteStationMapper;
 import com.example.railhub.repository.RouteStationRepository;
+import com.example.railhub.repository.StationRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -16,11 +20,9 @@ public class RouteStationService {
     private RouteStationMapper routeStationMapper;
 
     public List<RouteStationDTO> findRouteStationsById(Long routeId) {
-        List<Route_Station> routeStations = routeStationRepository.findById_RouteId(routeId);
-        List<RouteStationDTO> dtos = routeStations.stream()
-                .map(s -> routeStationMapper.toDTO(s))
+        List<Route_Station> routeStations = routeStationRepository.findAllByRouteIdOptimized(routeId);
+        return routeStations.stream()
+                .map(routeStationMapper::toDTO)
                 .collect(Collectors.toList());
-
-        return dtos;
     }
 }

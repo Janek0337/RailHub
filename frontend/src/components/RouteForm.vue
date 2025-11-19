@@ -1,15 +1,12 @@
 <template>
   <div>
+    <div v-if="error" class="error-message">{{ error }}</div>
     <h3>Zdefiniuj stacje na trasie</h3>
-    <draggable v-model="stations" item-key="stationId">
-      <template #item="{element, index}">
-        <div class="list-group-item">
-          <span>{{ index + 1 }}. {{ element.stationId }} | Przyjazd: {{ element.arrivalTime }} | 
-            Odjazd: {{ element.departureTime }} | Kilometr: {{ element.routeKilometer }}
-          </span>
-        </div>
-      </template>
-    </draggable>
+    <div v-for="stop in stations" :key="stop.stationId">
+      <p>{{ stop.stationName }} | Przyjazd: {{ stop.arrivalTime }} |
+            Odjazd: {{ stop.departureTime }} | Kilometr: {{ stop.routeKilometer }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -21,10 +18,11 @@ export default {
   components: {
     draggable,
   },
-  props: [routeId],
+  props: ['routeId'],
   data() {
     return {
-      stations: []
+      stations: [],
+      error: null
     }
   },
   mounted() {
@@ -40,13 +38,15 @@ export default {
                 headers: headers
             })
             .then(res => {
-                if (!res.ok) {
-                    throw new Error('Nie udało się pobrać stacji dla trasy');
+              if (!res.ok) {
+                throw new Error('Nie udało się pobrać stacji dla trasy');
                 }
-                return res.json();
+              return res.json()
             })
             .then(data => {
+                console.log('Dane stacji dla trasy:', data);
                 this.stations = data
+                this.error = null
             })
             .catch(err => console.error("Błąd podczas pobierania stacji dla trasy:", err))
     }
@@ -54,6 +54,10 @@ export default {
 </script>
 
 <style scoped>
+.list-group {
+  margin-top: 15px;
+}
+
 .list-group-item {
   padding: 10px 15px;
   margin: 5px 0;
@@ -67,5 +71,14 @@ export default {
 
 .list-group-item:active {
   cursor: grabbing;
+}
+
+.error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin-bottom: 15px;
 }
 </style>
