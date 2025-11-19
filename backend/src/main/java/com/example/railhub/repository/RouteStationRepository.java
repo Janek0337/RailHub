@@ -2,6 +2,7 @@ package com.example.railhub.repository;
 
 import com.example.railhub.entity.Route_Station;
 import com.example.railhub.entity.Route_Station_ID;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,5 +17,9 @@ public interface RouteStationRepository extends JpaRepository<Route_Station, Rou
 
     @Query("SELECT rs FROM Route_Station rs JOIN FETCH rs.station s JOIN FETCH rs.route r WHERE r.routeId = :routeId ORDER BY rs.stopOrder ASC")
     List<Route_Station> findAllByRouteIdOptimized(@Param("routeId") Long routeId);
+
+    @Transactional
+    @Query("DELETE FROM Route_Station rs WHERE rs.id.routeId = :routeId")
+    void deleteAllByRouteId(Long routeId);
 
 }

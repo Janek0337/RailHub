@@ -23,6 +23,7 @@ public class RouteService {
     private RouteRepository routeRepository;
     private RouteStationRepository routeStationRepository;
     private StationRepository stationRepository;
+    private RouteStationService routeStationService;
 
     public List<RouteViewDTO> findAllRoutes() {
         List<Route> routes = routeRepository.findAll();
@@ -60,6 +61,7 @@ public class RouteService {
     }
 
     public void deleteRoute(Long id) {
+        routeStationService.deleteRoutesStations(id);
         routeRepository.deleteById(id);
     }
 }

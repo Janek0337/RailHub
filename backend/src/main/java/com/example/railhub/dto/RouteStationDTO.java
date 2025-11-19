@@ -1,5 +1,6 @@
 package com.example.railhub.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,11 @@ public class RouteStationDTO {
     private Long routeId;
     private Long stationId;
     private String stationName;
+
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime arrivalTime;
+
+    @JsonFormat(pattern = "HH:mm")
     private LocalTime departureTime;
     private int stopOrder;
     private int routeKilometer;

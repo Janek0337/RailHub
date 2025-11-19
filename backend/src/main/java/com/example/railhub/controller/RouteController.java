@@ -27,13 +27,13 @@ public class RouteController {
         RouteDTO updatedRouteDTO = routeService.updateRoute(id, routeDTO);
         return ResponseEntity.status(HttpStatus.OK).body(updatedRouteDTO);
     }
-
+*/
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRoute(@PathVariable Long id) {
         routeService.deleteRoute(id);
         return ResponseEntity.noContent().build();
     }
-
+/*
     @PostMapping
     public ResponseEntity<RouteDTO> createRoute(@RequestBody RouteDTO routeDTO) {
         RouteDTO createdRouteDTO = routeService.createRoute(routeDTO);

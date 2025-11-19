@@ -7,7 +7,7 @@
                 <h4>Pociąg: {{ route.trainName }}</h4>
             </div>
             <div class="resource-actions">
-                <button class="edit-button" @click="handleEdit(route.routeId)">Edytuj stacje</button>
+                <button class="edit-button" @click="handleEdit(route.routeId)">Edytuj</button>
                 <button class="delete-button" @click="handleDelete(route.routeId)">Usuń</button>
             </div>
         </div>

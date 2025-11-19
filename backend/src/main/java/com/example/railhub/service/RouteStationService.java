@@ -25,4 +25,8 @@ public class RouteStationService {
                 .map(routeStationMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    public void deleteRoutesStations(Long routeId) {
+        routeStationRepository.deleteAllByRouteId(routeId);
+    }
 }
