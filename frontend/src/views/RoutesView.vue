@@ -39,7 +39,26 @@ export default {
             this.isModalVisible = true;
         },
         handleDelete(routeId) {
-
+            if (!confirm(`Czy na pewno chcesz usunąć trasę "${routeId}"?`)) {
+                return
+            }
+            const url = `http://localhost:6767/admin/routes/${routeId}`
+            const jwtToken = localStorage.getItem('user_token');
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwtToken}`
+            }
+            fetch(url, {
+                method: 'DELETE',
+                headers: headers
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Nie udało się usunąć trasy');
+                }
+                this.routes = this.routes.filter(route => route.routeId !== routeId);
+            })
+            .catch(err => console.error("Błąd podczas usuwania trasy:", err));
         },
         closeModal() {
             this.isModalVisible = false;

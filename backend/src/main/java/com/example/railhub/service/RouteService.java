@@ -12,6 +12,7 @@ import com.example.railhub.repository.StationRepository;
 import com.example.railhub.repository.TrainRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +61,7 @@ public class RouteService {
         return routeViews;
     }
 
+    @Transactional
     public void deleteRoute(Long id) {
         routeStationService.deleteRoutesStations(id);
         routeRepository.deleteById(id);

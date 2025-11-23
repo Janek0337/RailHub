@@ -59,7 +59,7 @@ export default {
     const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${jwtToken}`
-    };
+    }
     const url = `http://localhost:6767/admin/route-stations/${this.routeId}`
     const urlStations = `http://localhost:6767/admin/stations`
 

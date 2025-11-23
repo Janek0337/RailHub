@@ -103,12 +103,12 @@ export default {
             })
             .then(res => {
                 if (res.ok) {
-                    return res.json();
+                    return res.json()
                 } else {
                     return res.json().then(errorBody => {
-                        const error = new Error(errorBody.message || `Błąd operacji ${method}`);
-                        throw error;
-                    });
+                        const error = new Error(errorBody.message || `Błąd operacji ${method}`)
+                        throw error
+                    })
                 }
             })
             .then(responseData => {
