@@ -1,6 +1,8 @@
 package com.example.railhub.controller;
 
 import com.example.railhub.dto.RouteDTO;
+import com.example.railhub.dto.RoutePayload;
+import com.example.railhub.dto.RouteStationDTO;
 import com.example.railhub.dto.RouteViewDTO;
 import com.example.railhub.service.RouteService;
 import lombok.RequiredArgsConstructor;
@@ -33,12 +35,10 @@ public class RouteController {
         routeService.deleteRoute(id);
         return ResponseEntity.noContent().build();
     }
-/*
+
     @PostMapping
-    public ResponseEntity<RouteDTO> createRoute(@RequestBody RouteDTO routeDTO) {
-        RouteDTO createdRouteDTO = routeService.createRoute(routeDTO);
+    public ResponseEntity<RouteDTO> createRoute(@RequestBody RoutePayload payload) {
+        RouteDTO createdRouteDTO = routeService.createRoute(payload);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdRouteDTO);
     }
-
- */
 }

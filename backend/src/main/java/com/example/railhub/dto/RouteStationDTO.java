@@ -13,7 +13,6 @@ import java.time.LocalTime;
 public class RouteStationDTO {
     private Long routeId;
     private Long stationId;
-    private String stationName;
 
     @JsonFormat(pattern = "HH:mm")
     private LocalTime arrivalTime;

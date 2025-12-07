@@ -1,11 +1,10 @@
 package com.example.railhub.service;
 
-import com.example.railhub.dto.RouteViewDTO;
-import com.example.railhub.entity.Route;
-import com.example.railhub.entity.Route_Station;
-import com.example.railhub.entity.Station;
+import com.example.railhub.dto.*;
+import com.example.railhub.entity.*;
 import com.example.railhub.exceptions.ResourceNotFoundException;
 import com.example.railhub.mapper.RouteMapper;
+import com.example.railhub.mapper.RouteStationMapper;
 import com.example.railhub.repository.RouteRepository;
 import com.example.railhub.repository.RouteStationRepository;
 import com.example.railhub.repository.StationRepository;
@@ -21,10 +20,13 @@ import java.util.Optional;
 @Service
 @AllArgsConstructor
 public class RouteService {
+    private final RouteStationMapper routeStationMapper;
     private RouteRepository routeRepository;
     private RouteStationRepository routeStationRepository;
     private StationRepository stationRepository;
     private RouteStationService routeStationService;
+    private TrainRepository trainRepository;
+    private RouteMapper routeMapper;
 
     public List<RouteViewDTO> findAllRoutes() {
         List<Route> routes = routeRepository.findAll();
@@ -65,5 +67,26 @@ public class RouteService {
     public void deleteRoute(Long id) {
         routeStationService.deleteRoutesStations(id);
         routeRepository.deleteById(id);
+    }
+
+    @Transactional
+    public RouteDTO createRoute(RoutePayload payload) {
+        Train trainRef = trainRepository.getReferenceById(payload.getTrainId());
+
+        Route newRoute = new Route(null, trainRef);
+        Route savedRoute = routeRepository.save(newRoute);
+        Long newId = savedRoute.getRouteId();
+
+        for (RouteStationDTO station : payload.getStations()) {
+            Route_Station newStation = routeStationMapper.toEntity(station);
+            Route_Station_ID routeStationId = new Route_Station_ID();
+            routeStationId.setRouteId(newId);
+            routeStationId.setStationId(station.getStationId());
+
+            newStation.setRoute(savedRoute);
+            newStation.setId(routeStationId);
+            routeStationRepository.save(newStation);
+        }
+        return routeMapper.toDTO(newRoute);
     }
 }
