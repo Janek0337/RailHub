@@ -1,9 +1,22 @@
 <template>
   <div class="modal-container">
     <div class="modal-header">
-      <h3>Zdefiniuj stacje na trasie</h3>
+      <h3>{{ isEditMode ? 'Zdefiniuj stacje na trasie' : 'Stwórz nową trasę' }}</h3>
     </div>
     <div class="modal-body-scrollable">
+      <div class="train-selector">
+        <label>Wybierz pociąg:</label>
+        <VueMultiselect
+          v-model="selectedTrain"
+          :options="allTrains"
+          :searchable="true"
+          :close-on-select="true"
+          label="trainName"
+          track-by="id"
+          placeholder="Wpisz, aby wyszukać pociąg..."
+          :allow-empty="false"
+        />
+      </div>
       <draggable v-model="stations" item-key="stationId" tag="div" class="list-group">
         <template #item="{element}">
           <div class="list-group-item">
@@ -46,12 +59,23 @@ export default {
   components: {
     draggable, VueMultiselect
   },
-  props: ['routeId'],
+  props: ['routeData'],
+  emits: ['route-saved'],
   data() {
     return {
       stations: [],
       error: null,
-      allStations: []
+      allStations: [],
+      allTrains: [],
+      selectedTrain: null,
+    }
+  },
+  computed: {
+    isEditMode() {
+      return !!this.routeData;
+    },
+    routeId() {
+      return this.isEditMode ? this.routeData.routeId : null;
     }
   },
   async mounted() {
@@ -60,32 +84,47 @@ export default {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${jwtToken}`
     }
-    const url = `http://localhost:6767/admin/route-stations/${this.routeId}`
-    const urlStations = `http://localhost:6767/admin/stations`
+    const urlStations = `http://localhost:6767/admin/stations`;
+    const urlTrains = `http://localhost:6767/admin/trains`;
 
     try {
-        const [resStations, resRouteStations] = await Promise.all([
+        const fetchPromises = [
             fetch(urlStations, { method: 'GET', headers: headers }),
-            fetch(url, { method: 'GET', headers: headers })
-        ])
+            fetch(urlTrains, { method: 'GET', headers: headers })
+        ];
 
-        if (!resStations.ok) throw new Error(`Błąd pobierania stacji: ${resStations.status}`)
-        if (!resRouteStations.ok) throw new Error(`Błąd pobierania stacji dla trasy: ${resRouteStations.status}`)
+        if (this.isEditMode) {
+            const url = `http://localhost:6767/admin/route-stations/${this.routeId}`;
+            fetchPromises.push(fetch(url, { method: 'GET', headers: headers }));
+        }
 
-        this.allStations = await resStations.json()
-        const routeStationsData = await resRouteStations.json()
+        const responses = await Promise.all(fetchPromises);
+        
+        const [resStations, resTrains, resRouteStations] = responses;
 
-        this.stations = routeStationsData.map(routeStation => {
-            
-            const matchingStation = this.allStations.find(
-                s => s.stationId === routeStation.stationId
-            )
+        if (!resStations.ok) throw new Error(`Błąd pobierania stacji: ${resStations.status}`);
+        this.allStations = await resStations.json();
 
-            return {
-                ...routeStation,
-                selectedStation: matchingStation || null 
+        if (!resTrains.ok) throw new Error(`Błąd pobierania pociągów: ${resTrains.status}`);
+        this.allTrains = await resTrains.json();
+
+        if (this.isEditMode) {
+            this.selectedTrain = this.allTrains.find(train => train.trainName === this.routeData.trainName);
+
+            if (resRouteStations) {
+                if (!resRouteStations.ok) throw new Error(`Błąd pobierania stacji dla trasy: ${resRouteStations.status}`);
+                const routeStationsData = await resRouteStations.json();
+                this.stations = routeStationsData.map(routeStation => {
+                    const matchingStation = this.allStations.find(
+                        s => s.stationId === routeStation.stationId
+                    )
+                    return {
+                        ...routeStation,
+                        selectedStation: matchingStation || null 
+                    }
+                });
             }
-        })
+        }
 
     } catch (err) {
         this.error = err.message;
@@ -95,7 +134,6 @@ export default {
   methods: {
     addNewStation() {
       const newStation = {
-        routeId: this.routeId,
         stationId: -Date.now(),
         stationName: null,
         arrivalTime: "00:00",
@@ -111,7 +149,57 @@ export default {
       this.stations = this.stations.filter(station => station.stationId !== stationId)
     },
     handleSave() {
+        if (!this.isEditMode) { // Create mode
+            if (!this.selectedTrain) {
+                alert('Proszę wybrać pociąg.');
+                return;
+            }
+            if (this.stations.length < 2) {
+                alert('Trasa musi mieć co najmniej dwie stacje.');
+                return;
+            }
 
+            const routePayload = {
+                trainId: this.selectedTrain.id,
+                stations: this.stations.map((station, index) => ({
+                    stationId: station.selectedStation.stationId,
+                    arrivalTime: station.arrivalTime,
+                    departureTime: station.departureTime,
+                    stopOrder: index,
+                    routeKilometer: station.routeKilometer
+                }))
+            };
+
+            const jwtToken = localStorage.getItem('user_token');
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwtToken}`
+            };
+            const url = 'http://localhost:6767/admin/routes';
+
+            fetch(url, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(routePayload)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.message || 'Nie udało się zapisać trasy') });
+                }
+                return res.json();
+            })
+            .then(() => {
+                this.$emit('route-saved');
+            })
+            .catch(err => {
+                this.error = err.message;
+                console.error("Błąd podczas zapisywania trasy:", err);
+                alert(`Błąd: ${err.message}`);
+            });
+        } else {
+            // Edit mode - not implemented on backend yet
+            alert('Funkcjonalność edycji trasy nie jest jeszcze zaimplementowana.');
+        }
     }
   }
 }
@@ -194,5 +282,9 @@ export default {
   overflow-y: auto; 
   padding: 15px;
   min-height: 0; /* Ważne dla Flexboxa w Firefoxie */
+}
+
+.train-selector {
+  margin-bottom: 20px;
 }
 </style>

@@ -1,13 +1,14 @@
 <template>
     <div class="resource-container">
         <h1>Trasy</h1>
+        <button class="add-button" @click="openAddModal">Dodaj trasę</button>
         <div v-for="route in routes" :key="route.routeId" class="resource-card">
             <div class="resource-info">
                 <h3>{{ route.startStationName }} -> {{ route.endStationName }}</h3>
                 <h4>Pociąg: {{ route.trainName }}</h4>
             </div>
             <div class="resource-actions">
-                <button class="edit-button" @click="handleEdit(route.routeId)">Edytuj</button>
+                <button class="edit-button" @click="handleEdit(route)">Edytuj</button>
                 <button class="delete-button" @click="handleDelete(route.routeId)">Usuń</button>
             </div>
         </div>
@@ -15,7 +16,7 @@
 
     <div v-if="isModalVisible" class="modal-backdrop">
         <div class="modal-content">
-            <RouteForm v-if="selectedRouteId" :key="selectedRouteId" :routeId="selectedRouteId" />
+            <RouteForm :route-data="selectedRoute" @route-saved="handleRouteSaved" />
             <button @click="closeModal" class="close-button">Zamknij</button>
         </div>
     </div>
@@ -30,13 +31,21 @@ export default {
         return {
             routes: [],
             isModalVisible: false,
-            selectedRouteId: null,
+            selectedRoute: null,
         }
     },
     methods: {
-        handleEdit(routeId) {
-            this.selectedRouteId = routeId;
+        openAddModal() {
+            this.selectedRoute = null;
             this.isModalVisible = true;
+        },
+        handleEdit(route) {
+            this.selectedRoute = route;
+            this.isModalVisible = true;
+        },
+        handleRouteSaved() {
+            this.closeModal();
+            this.fetchRoutes();
         },
         handleDelete(routeId) {
             if (!confirm(`Czy na pewno chcesz usunąć trasę "${routeId}"?`)) {
@@ -62,31 +71,34 @@ export default {
         },
         closeModal() {
             this.isModalVisible = false;
-            this.selectedRouteId = null;
+            this.selectedRoute = null;
+        },
+        fetchRoutes() {
+            const jwtToken = localStorage.getItem('user_token')
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${jwtToken}`
+            }
+            const url = 'http://localhost:6767/admin/routes'
+
+            fetch(url, {
+                    method: 'GET',
+                    headers: headers
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Nie udało się pobrać tras');
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    this.routes = data
+                })
+                .catch(err => console.error("Błąd podczas pobierania tras:", err));
         }
     },
     mounted() {
-        const jwtToken = localStorage.getItem('user_token')
-        const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${jwtToken}`
-        }
-        const url = 'http://localhost:6767/admin/routes'
-
-        fetch(url, {
-                method: 'GET',
-                headers: headers
-            })
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error('Nie udało się pobrać tras');
-                }
-                return res.json();
-            })
-            .then(data => {
-                this.routes = data
-            })
-            .catch(err => console.error("Błąd podczas pobierania tras:", err));
+        this.fetchRoutes();
     }
 }
 </script>
@@ -126,7 +138,7 @@ export default {
     color: #555;
 }
 
-.resource-actions button {
+.resource-actions button, .add-button {
     border: none;
     padding: 8px 16px;
     border-radius: 5px;
@@ -144,6 +156,16 @@ export default {
   background-color: #dc3545;
   color: white;
   margin-left: 10px;
+}
+
+.add-button {
+  background-color: #28a745;
+  color: white;
+  margin-bottom: 25px;
+}
+
+.add-button:hover {
+  background-color: #218838;
 }
 
 .modal-backdrop {
