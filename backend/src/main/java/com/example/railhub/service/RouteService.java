@@ -77,13 +77,16 @@ public class RouteService {
         Route savedRoute = routeRepository.save(newRoute);
         Long newId = savedRoute.getRouteId();
 
-        for (RouteStationDTO station : payload.getStations()) {
-            Route_Station newStation = routeStationMapper.toEntity(station);
+        for (RouteStationDTO stationDTO : payload.getStations()) {
+            Station stationRef = stationRepository.getReferenceById(stationDTO.getStationId());
+
+            Route_Station newStation = routeStationMapper.toEntity(stationDTO);
             Route_Station_ID routeStationId = new Route_Station_ID();
             routeStationId.setRouteId(newId);
-            routeStationId.setStationId(station.getStationId());
+            routeStationId.setStationId(stationDTO.getStationId());
 
             newStation.setRoute(savedRoute);
+            newStation.setStation(stationRef);
             newStation.setId(routeStationId);
             routeStationRepository.save(newStation);
         }

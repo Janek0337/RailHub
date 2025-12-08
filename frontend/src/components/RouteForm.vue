@@ -149,57 +149,69 @@ export default {
       this.stations = this.stations.filter(station => station.stationId !== stationId)
     },
     handleSave() {
-        if (!this.isEditMode) { // Create mode
-            if (!this.selectedTrain) {
-                alert('Proszę wybrać pociąg.');
-                return;
-            }
-            if (this.stations.length < 2) {
-                alert('Trasa musi mieć co najmniej dwie stacje.');
-                return;
-            }
+      if (!this.selectedTrain) {
+          alert('Proszę wybrać pociąg.');
+          return;
+      }
+      if (this.stations.length < 2) {
+          alert('Trasa musi mieć co najmniej dwie stacje.');
+          return;
+      }
 
-            const routePayload = {
-                trainId: this.selectedTrain.id,
-                stations: this.stations.map((station, index) => ({
-                    stationId: station.selectedStation.stationId,
-                    arrivalTime: station.arrivalTime,
-                    departureTime: station.departureTime,
-                    stopOrder: index,
-                    routeKilometer: station.routeKilometer
-                }))
-            };
+      // Walidacja, czy każda stacja została wybrana
+      const allStationsSelected = this.stations.every(station => station.selectedStation);
+      if (!allStationsSelected) {
+          alert('Proszę upewnić się, że dla każdego wiersza została wybrana stacja z listy.');
+          return;
+      }
 
-            const jwtToken = localStorage.getItem('user_token');
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${jwtToken}`
-            };
-            const url = 'http://localhost:6767/admin/routes';
+      const routePayload = {
+          trainId: this.selectedTrain.id,
+          stations: this.stations.map((station, index) => ({
+              stationId: station.selectedStation.stationId,
+              arrivalTime: station.arrivalTime,
+              departureTime: station.departureTime,
+              stopOrder: index,
+              routeKilometer: station.routeKilometer
+          }))
+      };
 
-            fetch(url, {
-                method: 'POST',
-                headers: headers,
-                body: JSON.stringify(routePayload)
-            })
-            .then(res => {
-                if (!res.ok) {
-                    return res.json().then(err => { throw new Error(err.message || 'Nie udało się zapisać trasy') });
-                }
-                return res.json();
-            })
-            .then(() => {
-                this.$emit('route-saved');
-            })
-            .catch(err => {
-                this.error = err.message;
-                console.error("Błąd podczas zapisywania trasy:", err);
-                alert(`Błąd: ${err.message}`);
-            });
-        } else {
-            // Edit mode - not implemented on backend yet
-            alert('Funkcjonalność edycji trasy nie jest jeszcze zaimplementowana.');
-        }
+      const jwtToken = localStorage.getItem('user_token');
+      const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`
+      };
+      const url = 'http://localhost:6767/admin/routes';
+      const method = this.isEditMode ? 'PUT' : 'POST'
+      fetch(url, {
+          method: method,
+          headers: headers,
+          body: JSON.stringify(routePayload)
+      })
+      .then(res => {
+          if (!res.ok) {
+              // Sprawdzamy, czy odpowiedź jest w formacie JSON
+              const contentType = res.headers.get("content-type");
+              if (contentType && contentType.indexOf("application/json") !== -1) {
+                  // Jeśli tak, parsujemy JSON, aby uzyskać szczegóły błędu
+                  return res.json().then(errorBody => {
+                      throw new Error(errorBody.message || 'Wystąpił nieznany błąd serwera.');
+                  });
+              } else {
+                  // Jeśli nie, odczytujemy odpowiedź jako tekst
+                  return res.text().then(text => { throw new Error(text || `Błąd serwera: ${res.status}`) });
+              }
+          }
+          return res.json();
+      })
+      .then(() => {
+          this.$emit('route-saved');
+      })
+      .catch(err => {
+          this.error = err.message;
+          console.error("Błąd podczas zapisywania trasy:", err);
+          alert(`Błąd: ${err.message}`);
+      });
     }
   }
 }
