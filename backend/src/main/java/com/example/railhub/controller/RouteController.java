@@ -23,13 +23,13 @@ public class RouteController {
         List<RouteViewDTO> routes = routeService.findAllRoutes();
         return ResponseEntity.ok(routes);
     }
-/*
+
     @PutMapping("/{id}")
-    public ResponseEntity<RouteDTO> updateRoute(@PathVariable Long id, @RequestBody RouteDTO routeDTO) {
-        RouteDTO updatedRouteDTO = routeService.updateRoute(id, routeDTO);
+    public ResponseEntity<RouteDTO> updateRoute(@PathVariable Long id, @RequestBody RoutePayload payload) {
+        RouteDTO updatedRouteDTO = routeService.updateRoute(id, payload);
         return ResponseEntity.status(HttpStatus.OK).body(updatedRouteDTO);
     }
-*/
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRoute(@PathVariable Long id) {
         routeService.deleteRoute(id);

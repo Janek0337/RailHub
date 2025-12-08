@@ -7,6 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -23,4 +26,10 @@ public class Route {
     @JoinColumn(name="train_id", nullable = false)
     @NotNull
     private Train train;
+
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL,  orphanRemoval = true)
+    private List<Route_Station> stations = new ArrayList<>();
+
+    public Route(Object o, Train trainRef) {
+    }
 }

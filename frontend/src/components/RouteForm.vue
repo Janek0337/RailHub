@@ -181,8 +181,11 @@ export default {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${jwtToken}`
       };
-      const url = 'http://localhost:6767/admin/routes';
+      let url = 'http://localhost:6767/admin/routes';
       const method = this.isEditMode ? 'PUT' : 'POST'
+      if (this.isEditMode) {
+        url += "/" + this.routeId
+      }
       fetch(url, {
           method: method,
           headers: headers,
@@ -190,17 +193,7 @@ export default {
       })
       .then(res => {
           if (!res.ok) {
-              // Sprawdzamy, czy odpowiedź jest w formacie JSON
-              const contentType = res.headers.get("content-type");
-              if (contentType && contentType.indexOf("application/json") !== -1) {
-                  // Jeśli tak, parsujemy JSON, aby uzyskać szczegóły błędu
-                  return res.json().then(errorBody => {
-                      throw new Error(errorBody.message || 'Wystąpił nieznany błąd serwera.');
-                  });
-              } else {
-                  // Jeśli nie, odczytujemy odpowiedź jako tekst
-                  return res.text().then(text => { throw new Error(text || `Błąd serwera: ${res.status}`) });
-              }
+              new Error("Błąd")
           }
           return res.json();
       })

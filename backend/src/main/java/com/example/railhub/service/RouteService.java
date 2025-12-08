@@ -13,9 +13,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -91,5 +90,43 @@ public class RouteService {
             routeStationRepository.save(newStation);
         }
         return routeMapper.toDTO(newRoute);
+    }
+
+    @Transactional
+    public RouteDTO updateRoute(Long routeId, RoutePayload payload) {
+        Route route = routeRepository.findById(routeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Route not found"));
+        Map<Long, Route_Station> currentStationsMap = route.getStations().stream()
+                .collect(Collectors.toMap(rs -> rs.getStation().getStationId(), rs -> rs));
+
+        Set<Long> payloadStationIds = new HashSet<>();
+
+        for (RouteStationDTO stationDTO : payload.getStations()) {
+            Long stationId =  stationDTO.getStationId();
+            payloadStationIds.add(stationId);
+
+            if (currentStationsMap.containsKey(stationId)) {
+                Route_Station existingStation = currentStationsMap.get(stationId);
+
+                existingStation.setArrivalTime(stationDTO.getArrivalTime());
+                existingStation.setDepartureTime(stationDTO.getDepartureTime());
+                existingStation.setRouteKilometer(stationDTO.getRouteKilometer());
+                existingStation.setStopOrder(stationDTO.getStopOrder());
+            }
+            else {
+                Station stationRef = stationRepository.getReferenceById(stationId);
+                Route_Station newStation = routeStationMapper.toEntity(stationDTO);
+
+                newStation.setRoute(route);
+                newStation.setStation(stationRef);
+                newStation.setId(new Route_Station_ID(routeId, stationId));
+
+                route.getStations().add(newStation);
+            }
+        }
+
+        route.getStations().removeIf(rs -> !payloadStationIds.contains(rs.getId().getStationId()));
+        Route savedRoute = routeRepository.save(route);
+        return routeMapper.toDTO(savedRoute);
     }
 }
