@@ -129,4 +129,24 @@ public class RouteService {
         Route savedRoute = routeRepository.save(route);
         return routeMapper.toDTO(savedRoute);
     }
+
+    public List<List<RouteStationDTO>> getSpecificRoutes(RouteSearchDTO routeSearchDTO) {
+        List<Long> matchingIds = routeStationRepository.findSpecificRoutes(
+                routeSearchDTO.getStationFromId(), routeSearchDTO.getStationToId(), routeSearchDTO.getTime());
+
+        List<List<RouteStationDTO>> result = new ArrayList<>();
+
+        for (Long id : matchingIds) {
+            List<Route_Station> routeStations = routeStationRepository.findStationsOnRoute(
+                    id, routeSearchDTO.getStationFromId(), routeSearchDTO.getStationToId());
+
+            List<RouteStationDTO> DTOs = new ArrayList<>();
+            for (Route_Station routeStation : routeStations) {
+                DTOs.add(routeStationMapper.toDTO(routeStation));
+            }
+            result.add(DTOs);
+        }
+
+        return result;
+    }
 }

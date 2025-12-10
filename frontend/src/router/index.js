@@ -6,6 +6,7 @@ import TicketTypesView from '../views/TicketTypesView.vue'
 import StationsView from '../views/StationsView.vue'
 import TrainsView from '../views/TrainsView.vue'
 import RoutesView from '../views/RoutesView.vue'
+import Browser from '@/views/Browser.vue'
 
 const routes = [
   {
@@ -37,6 +38,11 @@ const routes = [
     path: '/routes',
     name: 'routes',
     component: RoutesView
+  },
+  {
+    path: '/browser',
+    name: 'browser',
+    component: Browser
   },
   {
     path: '/not-authorised',
