@@ -1,6 +1,8 @@
 package com.example.railhub.service;
 
 import com.example.railhub.dto.BookTicketDTO;
+import com.example.railhub.dto.BookTicketsRequestDTO;
+import com.example.railhub.dto.TicketOrderItem;
 import com.example.railhub.dto.TrainAvailabilityDTO;
 import com.example.railhub.entity.Route_Station_ID;
 import com.example.railhub.entity.Ticket;
@@ -23,7 +25,7 @@ public class TicketService {
     private final RouteStationRepository routeStationRepository;
     private final RouteRepository routeRepository;
 
-    public void bookTickets(BookTicketDTO bookTicketDTO) {
+    public void bookTicket(BookTicketDTO bookTicketDTO) {
         var route = routeRepository.findById(bookTicketDTO.getRouteId()).orElseThrow(() -> new RuntimeException("Route not found"));
         var train = route.getTrain();
         int capacity = train.getCapacity();
@@ -38,9 +40,43 @@ public class TicketService {
         ticketToBook.setStartStation(stationRepository.findById(bookTicketDTO.getStationFromId()).get());
         ticketToBook.setDestinationStation(stationRepository.findById(bookTicketDTO.getStationToId()).get());
         ticketToBook.setRoute(route);
+        ticketToBook.setTrain(route.getTrain());
         ticketToBook.setPrice(BigDecimal.valueOf(this.countPrice(bookTicketDTO)));
 
         ticketRepository.save(ticketToBook);
+    }
+
+    public void bookTickets(BookTicketsRequestDTO bookTicketsRequestDTO) {
+        var route = routeRepository.findById(bookTicketsRequestDTO.getRouteId()).orElseThrow(() -> new RuntimeException("Route not found"));
+        var train = route.getTrain();
+        int capacity = train.getCapacity();
+        int ticketsSold = getSoldTickets(bookTicketsRequestDTO.getStationFromId(), bookTicketsRequestDTO.getStationToId(), bookTicketsRequestDTO.getRouteId());
+
+        int totalTicketsToBuy = bookTicketsRequestDTO.getTickets().stream().mapToInt(TicketOrderItem::getQuantity).sum();
+
+        if (ticketsSold + totalTicketsToBuy > capacity) {
+            throw new RuntimeException("No available seats for this train on the selected route.");
+        }
+
+        for (TicketOrderItem item : bookTicketsRequestDTO.getTickets()) {
+            for (int i = 0; i < item.getQuantity(); i++) {
+                Ticket ticketToBook = new Ticket();
+                ticketToBook.setTicketType(ticketTypeRepository.findById(item.getTicketTypeId()).get());
+                ticketToBook.setPurchaseTime(LocalTime.now().truncatedTo(ChronoUnit.MINUTES));
+                ticketToBook.setStartStation(stationRepository.findById(bookTicketsRequestDTO.getStationFromId()).get());
+                ticketToBook.setDestinationStation(stationRepository.findById(bookTicketsRequestDTO.getStationToId()).get());
+                ticketToBook.setRoute(route);
+                ticketToBook.setTrain(route.getTrain());
+                ticketToBook.setPrice(BigDecimal.valueOf(this.countPrice(new BookTicketDTO(
+                        bookTicketsRequestDTO.getStationFromId(),
+                        bookTicketsRequestDTO.getStationToId(),
+                        train.getTrainId(),
+                        bookTicketsRequestDTO.getRouteId(),
+                        item.getTicketTypeId()
+                ))));
+                ticketRepository.save(ticketToBook);
+            }
+        }
     }
 
     private double countPrice(BookTicketDTO bookTicketDTO) {

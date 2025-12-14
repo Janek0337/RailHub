@@ -35,8 +35,8 @@ public class PublicController {
     }
 
     @PostMapping("/tickets")
-    public ResponseEntity<Void> bookTicket(@RequestBody BookTicketDTO bookTicketDTO) {
-        ticketService.bookTickets(bookTicketDTO);
+    public ResponseEntity<Void> bookTickets(@RequestBody BookTicketsRequestDTO bookTicketsRequestDTO) {
+        ticketService.bookTickets(bookTicketsRequestDTO);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

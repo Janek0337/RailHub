@@ -37,6 +37,23 @@
             <button class="delete-button" @click="handleBuy(route.routeId)">Kup bilet</button>
         </div>
     </div>
+    <div v-if="selectedRouteForPurchase" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Kup bilet</h2>
+            <h3>Trasa: {{ selectedRouteForPurchase.startStationName }} -> {{ selectedRouteForPurchase.endStationName }}</h3>
+            <div v-for="ticketType in ticketTypes" :key="ticketType.ticketTypeId" class="ticket-type-selector">
+                <label>{{ ticketType.ticketName }} ({{ ticketType.discountPercent }}% zniżki):</label>
+                <input type="number" v-model.number="ticketQuantities[ticketType.ticketTypeId]" min="0" />
+            </div>
+            <div class="total-price">
+                <h3>Suma: {{ totalPrice.toFixed(2) }} zł</h3>
+            </div>
+            <div class="modal-actions">
+                <button @click="confirmPurchase">Kup</button>
+                <button @click="cancelPurchase">Anuluj</button>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -51,10 +68,44 @@ export default {
             selectedStationTo: null,
             selectedTime: null,
             searched: false,
-            routes: []
+            routes: [],
+            selectedRouteForPurchase: null,
+            ticketTypes: [],
+            ticketQuantities: {}
         }
     },
+    computed: {
+        totalPrice() {
+            if (!this.selectedRouteForPurchase) return 0;
+            const costPerKilometer = 2;
+            const distance = this.selectedRouteForPurchase.kilometerTo - this.selectedRouteForPurchase.kilometerFrom;
+
+            return this.ticketTypes.reduce((total, ticketType) => {
+                const quantity = this.ticketQuantities[ticketType.ticketTypeId] || 0;
+                const pricePerTicket = (costPerKilometer * distance) * (1 - (ticketType.discountPercent / 100));
+                return total + (quantity * pricePerTicket);
+            }, 0);
+        }
+    },
+    mounted() {
+        this.fetchStations();
+        this.fetchTicketTypes();
+    },
     methods: {
+        fetchTicketTypes() {
+            const headers = { 'Content-Type': 'application/json' };
+            const url = `http://localhost:6767/browse`;
+            fetch(url, { method: 'GET', headers: headers })
+                .then(res => {
+                    if (!res.ok) throw new Error('Nie udało się pobrać typów biletów');
+                    return res.json();
+                })
+                .then(data => {
+                    this.ticketTypes = data;
+                    this.ticketTypes.forEach(t => this.ticketQuantities[t.ticketTypeId] = 0);
+                })
+                .catch(err => console.error("Błąd podczas pobierania typów biletów:", err));
+        },
         fetchStations() {
             const headers = {
                 'Content-Type': 'application/json'
@@ -119,16 +170,56 @@ export default {
                                 arrivalTime: endNode.arrivalTime,
                                 trainName: startNode.trainName,
                                 ticketCount: availability ? availability.capacity : 0,
-                                takenTicketCount: availability ? availability.ticketsSold : 0
+                                takenTicketCount: availability ? availability.ticketsSold : 0,
+                                kilometerFrom: startNode.routeKilometer,
+                                kilometerTo: endNode.routeKilometer
                             };
                         }).filter(r => r !== null);
                     });
                 })
                 .catch(err => console.error("Błąd podczas wyszukiwania tras:", err));
+        },
+        handleBuy(routeId) {
+            this.selectedRouteForPurchase = this.routes.find(r => r.routeId === routeId);
+        },
+        cancelPurchase() {
+            this.selectedRouteForPurchase = null;
+            this.ticketQuantities = {};
+        },
+        confirmPurchase() {
+            const ticketsToBuy = Object.entries(this.ticketQuantities)
+                .filter(([, quantity]) => quantity > 0)
+                .map(([ticketTypeId, quantity]) => ({ ticketTypeId: Number(ticketTypeId), quantity }));
+
+            if (ticketsToBuy.length === 0) {
+                alert("Proszę wybrać przynajmniej jeden bilet.");
+                return;
+            }
+
+            const body = {
+                routeId: this.selectedRouteForPurchase.routeId,
+                stationFromId: this.selectedStationFrom.stationId,
+                stationToId: this.selectedStationTo.stationId,
+                tickets: ticketsToBuy
+            };
+
+            const headers = { 'Content-Type': 'application/json' };
+            const url = `http://localhost:6767/browse/tickets`;
+
+            fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(body) })
+                .then(res => {
+                    if (!res.ok) {
+                        return res.text().then(text => { throw new Error(text || 'Nie udało się kupić biletów') });
+                    }
+                    alert("Bilety zostały pomyślnie zakupione!");
+                    this.cancelPurchase();
+                    this.handleSearch();
+                })
+                .catch(err => {
+                    console.error("Błąd podczas zakupu biletów:", err);
+                    alert(`Wystąpił błąd: ${err.message}`);
+                });
         }
-    },
-    mounted() {
-        this.fetchStations();
     }
 }
 </script>
@@ -145,5 +236,38 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-bottom: 30px;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+}
+
+.ticket-type-selector {
+    margin-bottom: 10px;
+}
+
+.total-price {
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+.modal-actions {
+    margin-top: 20px;
+    text-align: right;
 }
 </style>

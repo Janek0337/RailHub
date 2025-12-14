@@ -40,6 +40,11 @@ public class Ticket {
     private Route route;
 
     @NotNull
+    @ManyToOne
+    @JoinColumn(name = "train_id", nullable = false)
+    private Train train;
+
+    @NotNull
     @Column(name = "price", nullable = false)
     private BigDecimal price;
 
