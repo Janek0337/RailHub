@@ -21,18 +21,20 @@
             placeholder="Wpisz, aby wyszukać stację końcową..."
             :allow-empty="false"
         />
-        <p v-if="arrival">Departure time</p>
-        <input type="time">
+        <p>Departure time</p>
+        <input type="time" v-model="selectedTime">
         <button @click="handleSearch">Search</button>
     </div>
     <div v-if="searched" class="resource-container">
-        <h1>Wyniki wyszukiwania</h1>
+        <h1>Wyniki wyszukiwania:</h1>
         <div v-for="route in routes" :key="route.routeId" class="resource-card">
+            <h1>-----------------------------------------------------</h1>
             <div class="resource-info">
                 <h3>{{ route.startStationName }} ({{ route.departureTime }}) -> {{ route.endStationName }} ({{route.arrivalTime}})</h3>
                 <h4>Pociąg: {{ route.trainName }}</h4>
+                <h4>Zajętość miejsc: {{ route.takenTicketCount }}/{{ route.ticketCount }}</h4>
             </div>
-            <button class="delete-button" @click="handleDelete(route.routeId)">Usuń</button>
+            <button class="delete-button" @click="handleBuy(route.routeId)">Kup bilet</button>
         </div>
     </div>
 </template>
@@ -66,21 +68,28 @@ export default {
                     return res.json();
                 })
                 .then(data => {
+                    console.log("Pobrane stacje (sprawdź nazwy pól):", data);
                     this.allStations = data;
                 })
                 .catch(err => console.error("Błąd podczas pobierania stacji:", err));
         },
         handleSearch() {
+            if (!this.selectedStationFrom || !this.selectedStationTo) {
+                alert("Proszę wybrać obie stacje.");
+                return;
+            }
             const headers = {
                 'Content-Type': 'application/json'
             }
+            console.log("Wybrana stacja From:", this.selectedStationFrom);
             const body = {
-                "stationFromId" : this.stationFrom.stationId,
-                "stationToId" : this.stationTo.stationId,
-                "time" : this.selectedTime
+                "stationFromId" : this.selectedStationFrom.stationId,
+                "stationToId" : this.selectedStationTo.stationId,
+                "time" : this.selectedTime || "00:00"
             }
+            console.log("Wysyłane body:", JSON.stringify(body));
             const urlRoutes = `http://localhost:6767/browse/routes`;
-            fetch(urlStations, { method: 'GET', headers: headers, body: body })
+            fetch(urlRoutes, { method: 'POST', headers: headers, body: JSON.stringify(body) })
                 .then(res => {
                     if (!res.ok) {
                         throw new Error('Nie udało się pobrać stacji');
@@ -88,7 +97,25 @@ export default {
                     return res.json();
                 })
                 .then(data => {
-                    this.routes = data;
+                    this.searched = true;
+                    this.routes = data.map(routePath => {
+                        if (!routePath || routePath.length === 0) return null;
+
+                        const startNode = routePath.find(s => s.stationId === this.selectedStationFrom.stationId) || routePath[0];
+                        const endNode = routePath.find(s => s.stationId === this.selectedStationTo.stationId) || routePath[routePath.length - 1];
+
+                        const startStation = this.allStations.find(s => s.stationId === startNode.stationId);
+                        const endStation = this.allStations.find(s => s.stationId === endNode.stationId);
+
+                        return {
+                            routeId: startNode.routeId,
+                            startStationName: startStation ? startStation.stationName : 'Stacja ' + startNode.stationId,
+                            endStationName: endStation ? endStation.stationName : 'Stacja ' + endNode.stationId,
+                            departureTime: startNode.departureTime,
+                            arrivalTime: endNode.arrivalTime,
+                            trainName: 'Pociąg' // Backend nie zwraca nazwy pociągu w RouteStationDTO
+                        };
+                    }).filter(r => r !== null);
                 })
                 .catch(err => console.error("Błąd podczas pobierania stacji:", err));
         }

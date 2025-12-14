@@ -30,6 +30,5 @@ public class Route {
     @OneToMany(mappedBy = "route", cascade = CascadeType.ALL,  orphanRemoval = true)
     private List<Route_Station> stations = new ArrayList<>();
 
-    public Route(Object o, Train trainRef) {
-    }
+
 }

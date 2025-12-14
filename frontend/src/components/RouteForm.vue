@@ -12,7 +12,7 @@
           :searchable="true"
           :close-on-select="true"
           label="trainName"
-          track-by="id"
+          track-by="trainId"
           placeholder="Wpisz, aby wyszukać pociąg..."
           :allow-empty="false"
         />
@@ -166,7 +166,7 @@ export default {
       }
 
       const routePayload = {
-          trainId: this.selectedTrain.id,
+          trainId: this.selectedTrain.trainId,
           stations: this.stations.map((station, index) => ({
               stationId: station.selectedStation.stationId,
               arrivalTime: station.arrivalTime,

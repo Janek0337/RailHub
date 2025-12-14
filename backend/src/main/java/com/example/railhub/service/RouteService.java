@@ -72,7 +72,8 @@ public class RouteService {
     public RouteDTO createRoute(RoutePayload payload) {
         Train trainRef = trainRepository.getReferenceById(payload.getTrainId());
 
-        Route newRoute = new Route(null, trainRef);
+        Route newRoute = new Route();
+        newRoute.setTrain(trainRef);
         Route savedRoute = routeRepository.save(newRoute);
         Long newId = savedRoute.getRouteId();
 
@@ -98,6 +99,9 @@ public class RouteService {
                 .orElseThrow(() -> new ResourceNotFoundException("Route not found"));
         Map<Long, Route_Station> currentStationsMap = route.getStations().stream()
                 .collect(Collectors.toMap(rs -> rs.getStation().getStationId(), rs -> rs));
+
+        Train trainRef = trainRepository.getReferenceById(payload.getTrainId());
+        route.setTrain(trainRef);
 
         Set<Long> payloadStationIds = new HashSet<>();
 

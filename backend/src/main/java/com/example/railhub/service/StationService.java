@@ -3,12 +3,13 @@ package com.example.railhub.service;
 import com.example.railhub.dto.StationDTO;
 import com.example.railhub.entity.Station;
 import com.example.railhub.exceptions.ResourceNotFoundException;
+import com.example.railhub.mapper.RouteStationMapper;
 import com.example.railhub.mapper.StationMapper;
+import com.example.railhub.repository.RouteStationRepository;
 import com.example.railhub.repository.StationRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.lang.module.ResolutionException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,8 @@ import java.util.stream.Collectors;
 public class StationService {
     private final StationRepository stationRepository;
     private final StationMapper stationMapper;
+    private final RouteStationRepository routeStationRepository;
+    private final RouteStationMapper routeStationMapper;
 
     public List<StationDTO> findAllStations() {
         List<Station> stations = stationRepository.findAll();

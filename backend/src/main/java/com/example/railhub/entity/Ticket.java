@@ -2,11 +2,15 @@ package com.example.railhub.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
 
 @Entity
+@Setter
 @Table(name = "tickets")
 public class Ticket {
     @Id
@@ -32,8 +36,8 @@ public class Ticket {
 
     @NotNull
     @ManyToOne
-    @JoinColumn(name = "train_id", nullable = false)
-    private Train train;
+    @JoinColumn(name = "route_id", nullable = false)
+    private Route route;
 
     @NotNull
     @Column(name = "price", nullable = false)

@@ -2,12 +2,12 @@
   <nav>
     <router-link to="/">Home</router-link> |
     <router-link to="/login">Login</router-link> |
-    <router-link to="/ticket-types">Ticket types</router-link> |
+    <router-link to="/ticket-types">Rodzaje biletów</router-link> |
     <router-link to="/not-authorised">NAT</router-link> |
-    <router-link to="/stations">Stations</router-link> |
-    <router-link to="/trains">Trains</router-link> |
-    <router-link to="/routes">Routes</router-link> |
-    <router-link to="/browser">Browser</router-link>
+    <router-link to="/stations">Stacje</router-link> |
+    <router-link to="/trains">Pociągi</router-link> |
+    <router-link to="/routes">Trasy</router-link> |
+    <router-link to="/browser">Wyszukiwarka</router-link>
   </nav>
   <router-view/>
 </template>

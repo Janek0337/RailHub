@@ -2,7 +2,6 @@ package com.example.railhub.controller;
 
 import com.example.railhub.dto.RouteDTO;
 import com.example.railhub.dto.RoutePayload;
-import com.example.railhub.dto.RouteStationDTO;
 import com.example.railhub.dto.RouteViewDTO;
 import com.example.railhub.service.RouteService;
 import lombok.RequiredArgsConstructor;
