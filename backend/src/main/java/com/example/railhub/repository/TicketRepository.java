@@ -10,15 +10,11 @@ import org.springframework.stereotype.Repository;
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     @Query(nativeQuery = true, value = """
-        SELECT COUNT(tic.ticket_id)
-        FROM tickets tic
-        JOIN route_station ticket_start ON tic.start_station_id = ticket_start.station_id AND tic.route_id = ticket_start.route_id
-        JOIN route_station ticket_end ON tic.destination_station_id = ticket_end.station_id AND tic.route_id = ticket_end.route_id
-        JOIN route_station user_start ON user_start.station_id = :stationFromId AND user_start.route_id = :routeId
-        JOIN route_station user_end ON user_end.station_id = :stationToId AND user_end.route_id = :routeId
-        WHERE tic.route_id = :routeId
-          AND ticket_start.stop_order < user_end.stop_order
-          AND ticket_end.stop_order > user_start.stop_order
+        SELECT COUNT(t.ticket_id)
+        FROM tickets t
+        WHERE t.route_id = :routeId
+        AND (SELECT rs.stop_order FROM route_station rs WHERE rs.route_id = t.route_id AND rs.station_id = t.start_station_id) < (SELECT rs.stop_order FROM route_station rs WHERE rs.route_id = :routeId AND rs.station_id = :stationToId)
+        AND (SELECT rs.stop_order FROM route_station rs WHERE rs.route_id = t.route_id AND rs.station_id = t.destination_station_id) > (SELECT rs.stop_order FROM route_station rs WHERE rs.route_id = :routeId AND rs.station_id = :stationFromId)
     """)
     Integer countSoldTickets(
             @Param("stationFromId") Long stationFromId,
