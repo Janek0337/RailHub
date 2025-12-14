@@ -4,6 +4,7 @@ import com.example.railhub.dto.*;
 import com.example.railhub.service.RouteService;
 import com.example.railhub.service.StationService;
 import com.example.railhub.service.TicketService;
+import com.example.railhub.service.TicketTypeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ public class PublicController {
     private final StationService stationService;
     private final RouteService routeService;
     private final TicketService ticketService;
+    private final TicketTypeService ticketTypeService;
 
     @GetMapping("/stations")
     public ResponseEntity<List<StationDTO>> getAllStations(){
@@ -36,5 +38,17 @@ public class PublicController {
     public ResponseEntity<Void> bookTicket(@RequestBody BookTicketDTO bookTicketDTO) {
         ticketService.bookTickets(bookTicketDTO);
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/availability")
+    public ResponseEntity<TrainAvailabilityDTO> getTrainAvailability(@RequestParam(name = "from") Long stationFromId,
+                                                                     @RequestParam(name = "to") Long stationToId,
+                                                                     @RequestParam(name = "route") Long routeId) {
+        return new ResponseEntity<>(ticketService.getTrainAvailability(stationFromId, stationToId, routeId), HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<TicketTypeDTO>> getAllTicketTypes(){
+        return new ResponseEntity<>(ticketTypeService.getAllTicketTypes(), HttpStatus.OK);
     }
 }

@@ -21,4 +21,5 @@ public class RouteStationDTO {
     private LocalTime departureTime;
     private int stopOrder;
     private int routeKilometer;
+    private String trainName;
 }
