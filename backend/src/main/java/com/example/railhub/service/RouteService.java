@@ -77,7 +77,11 @@ public class RouteService {
         Route savedRoute = routeRepository.save(newRoute);
         Long newId = savedRoute.getRouteId();
 
+        Set<Long> addedStationIds = new HashSet<>();
         for (RouteStationDTO stationDTO : payload.getStations()) {
+            if (!addedStationIds.add(stationDTO.getStationId())) {
+                throw new IllegalArgumentException("Nie można dodać tej samej stacji do trasy więcej niż raz.");
+            }
             Station stationRef = stationRepository.getReferenceById(stationDTO.getStationId());
 
             Route_Station newStation = routeStationMapper.toEntity(stationDTO);
@@ -97,21 +101,26 @@ public class RouteService {
     public RouteDTO updateRoute(Long routeId, RoutePayload payload) {
         Route route = routeRepository.findById(routeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Route not found"));
-        Map<Long, Route_Station> currentStationsMap = route.getStations().stream()
-                .collect(Collectors.toMap(rs -> rs.getStation().getStationId(), rs -> rs));
 
         Train trainRef = trainRepository.getReferenceById(payload.getTrainId());
         route.setTrain(trainRef);
 
         Set<Long> payloadStationIds = new HashSet<>();
+        for (RouteStationDTO stationDTO : payload.getStations()) {
+            payloadStationIds.add(stationDTO.getStationId());
+        }
+
+        route.getStations().removeIf(rs -> !payloadStationIds.contains(rs.getStation().getStationId()));
 
         for (RouteStationDTO stationDTO : payload.getStations()) {
             Long stationId =  stationDTO.getStationId();
-            payloadStationIds.add(stationId);
 
-            if (currentStationsMap.containsKey(stationId)) {
-                Route_Station existingStation = currentStationsMap.get(stationId);
+            Optional<Route_Station> existingStationOpt = route.getStations().stream()
+                    .filter(rs -> rs.getStation().getStationId().equals(stationId))
+                    .findFirst();
 
+            if (existingStationOpt.isPresent()) {
+                Route_Station existingStation = existingStationOpt.get();
                 existingStation.setArrivalTime(stationDTO.getArrivalTime());
                 existingStation.setDepartureTime(stationDTO.getDepartureTime());
                 existingStation.setRouteKilometer(stationDTO.getRouteKilometer());
@@ -129,7 +138,6 @@ public class RouteService {
             }
         }
 
-        route.getStations().removeIf(rs -> !payloadStationIds.contains(rs.getId().getStationId()));
         Route savedRoute = routeRepository.save(route);
         return routeMapper.toDTO(savedRoute);
     }

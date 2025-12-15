@@ -2,6 +2,8 @@ package com.example.railhub.exceptions;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -18,8 +20,11 @@ class ErrorResponse {
 
 @ControllerAdvice
 public class RestExceptionHandler {
+    private static final Logger logger = LoggerFactory.getLogger(RestExceptionHandler.class);
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex, WebRequest request) {
+        logger.error("Handling IllegalArgumentException: ", ex);
         ErrorResponse error = new ErrorResponse(
                 ex.getMessage(),
                 HttpStatus.CONFLICT.value()

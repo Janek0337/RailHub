@@ -24,6 +24,7 @@ public class TicketTypeService {
     }
 
     public TicketTypeDTO createTicketType(TicketTypeDTO ticketTypeDTO) {
+        ticketTypeDTO.setTicketName(ticketTypeDTO.getTicketName().toUpperCase());
         Ticket_Type ticketType = ticketTypeMapper.toEntity(ticketTypeDTO);
         Ticket_Type tt = ticketTypeRepository.save(ticketType);
         return ticketTypeMapper.toDTO(tt);

@@ -12,7 +12,7 @@
           :searchable="true"
           :close-on-select="true"
           label="trainName"
-          track-by="trainId"
+          track-by="id"
           placeholder="Wpisz, aby wyszukać pociąg..."
           :allow-empty="false"
         />
@@ -41,10 +41,22 @@
           </div>
         </template>
       </draggable>
+      <div v-if="duplicateStations" class="error-message">
+        Każda stacja na trasie musi być unikalna.
+      </div>
+      <div v-if="trainNotSelected" class="error-message">
+        Proszę wybrać pociąg.
+      </div>
+      <div v-if="notEnoughStations" class="error-message">
+        Trasa musi mieć co najmniej dwie stacje.
+      </div>
+      <div v-if="someStationNotSelected" class="error-message">
+        Proszę upewnić się, że dla każdego wiersza została wybrana stacja z listy.
+      </div>
     </div>
     <div class="modal-footer">
       <button @click="addNewStation" class="add-station-button">Dodaj stację</button>
-      <button @click="handleSave">Zapisz</button>
+      <button @click="handleSave" :disabled="formIsInvalid">Zapisz</button>
     </div>
   </div>
 </template>
@@ -76,6 +88,22 @@ export default {
     },
     routeId() {
       return this.isEditMode ? this.routeData.routeId : null;
+    },
+    trainNotSelected() {
+      return !this.selectedTrain;
+    },
+    notEnoughStations() {
+      return this.stations.length < 2;
+    },
+    someStationNotSelected() {
+      return this.stations.some(s => !s.selectedStation);
+    },
+    duplicateStations() {
+      const stationIds = this.stations.map(s => s.selectedStation?.stationId).filter(id => id != null);
+      return new Set(stationIds).size !== stationIds.length;
+    },
+    formIsInvalid() {
+      return this.trainNotSelected || this.notEnoughStations || this.someStationNotSelected || this.duplicateStations;
     }
   },
   async mounted() {
@@ -149,24 +177,8 @@ export default {
       this.stations = this.stations.filter(station => station.stationId !== stationId)
     },
     handleSave() {
-      if (!this.selectedTrain) {
-          alert('Proszę wybrać pociąg.');
-          return;
-      }
-      if (this.stations.length < 2) {
-          alert('Trasa musi mieć co najmniej dwie stacje.');
-          return;
-      }
-
-      // Walidacja, czy każda stacja została wybrana
-      const allStationsSelected = this.stations.every(station => station.selectedStation);
-      if (!allStationsSelected) {
-          alert('Proszę upewnić się, że dla każdego wiersza została wybrana stacja z listy.');
-          return;
-      }
-
       const routePayload = {
-          trainId: this.selectedTrain.trainId,
+          trainId: this.selectedTrain.id,
           stations: this.stations.map((station, index) => ({
               stationId: station.selectedStation.stationId,
               arrivalTime: station.arrivalTime,
@@ -175,6 +187,8 @@ export default {
               routeKilometer: station.routeKilometer
           }))
       };
+
+      console.log('Sending payload:', JSON.stringify(routePayload, null, 2));
 
       const jwtToken = localStorage.getItem('user_token');
       const headers = {
