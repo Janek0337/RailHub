@@ -11,6 +11,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RouteStationDTO {
+    private Long trainId;
     private Long routeId;
     private Long stationId;
 

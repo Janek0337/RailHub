@@ -8,6 +8,9 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface RouteStationMapper {
     @Mapping(source = "station.stationId", target = "stationId")
+    @Mapping(source = "route.routeId", target = "routeId")
+    @Mapping(source = "route.train.trainId", target = "trainId")
+    @Mapping(source = "route.train.trainName", target = "trainName")
     RouteStationDTO toDTO(Route_Station routeStation);
     Route_Station toEntity(RouteStationDTO routeStationDTO);
 }

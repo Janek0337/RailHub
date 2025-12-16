@@ -70,10 +70,11 @@ public class RouteService {
 
     @Transactional
     public RouteDTO createRoute(RoutePayload payload) {
-        Train trainRef = trainRepository.getReferenceById(payload.getTrainId());
+        Train train = trainRepository.findById(payload.getTrainId())
+                .orElseThrow(() -> new ResourceNotFoundException("Train not found with id: " + payload.getTrainId()));
 
         Route newRoute = new Route();
-        newRoute.setTrain(trainRef);
+        newRoute.setTrain(train);
         Route savedRoute = routeRepository.save(newRoute);
         Long newId = savedRoute.getRouteId();
 
@@ -94,7 +95,7 @@ public class RouteService {
             newStation.setId(routeStationId);
             routeStationRepository.save(newStation);
         }
-        return routeMapper.toDTO(newRoute);
+        return routeMapper.toDTO(savedRoute);
     }
 
     @Transactional
