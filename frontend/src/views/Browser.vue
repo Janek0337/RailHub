@@ -21,9 +21,9 @@
             placeholder="Wpisz, aby wyszukać stację końcową..."
             :allow-empty="false"
         />
-        <p>Departure time</p>
+        <p>Godzina odjazdu</p>
         <input type="time" v-model="selectedTime">
-        <button @click="handleSearch">Search</button>
+        <button @click="handleSearch">Szukaj</button>
     </div>
     <div v-if="searched" class="resource-container">
         <h1>Wyniki wyszukiwania:</h1>
@@ -94,7 +94,7 @@ export default {
     methods: {
         fetchTicketTypes() {
             const headers = { 'Content-Type': 'application/json' };
-            const url = `http://localhost:6767/browse`;
+            const url = `http://localhost:6767/browse/ticket-types`;
             fetch(url, { method: 'GET', headers: headers })
                 .then(res => {
                     if (!res.ok) throw new Error('Nie udało się pobrać typów biletów');
@@ -147,8 +147,16 @@ export default {
                     const availabilityPromises = data.map(routePath => {
                         if (!routePath || routePath.length === 0) return Promise.resolve(null);
                         const startNode = routePath.find(s => s.stationId === this.selectedStationFrom.stationId) || routePath[0];
-                        const url = `http://localhost:6767/browse/availability?from=${this.selectedStationFrom.stationId}&to=${this.selectedStationTo.stationId}&route=${startNode.routeId}`;
-                        return fetch(url).then(res => res.json());
+                        const url = `http://localhost:6767/browse/availability`;
+                        const body = {
+                            stationFromId: this.selectedStationFrom.stationId,
+                            stationToId: this.selectedStationTo.stationId,
+                            routeId: startNode.routeId
+                        };
+                        const headers = {
+                            'Content-Type': 'application/json'
+                        };
+                        return fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(body) }).then(res => res.json());
                     });
 
                     Promise.all(availabilityPromises).then(availabilities => {

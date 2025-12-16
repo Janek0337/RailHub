@@ -40,14 +40,12 @@ public class PublicController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @GetMapping("/availability")
-    public ResponseEntity<TrainAvailabilityDTO> getTrainAvailability(@RequestParam(name = "from") Long stationFromId,
-                                                                     @RequestParam(name = "to") Long stationToId,
-                                                                     @RequestParam(name = "route") Long routeId) {
-        return new ResponseEntity<>(ticketService.getTrainAvailability(stationFromId, stationToId, routeId), HttpStatus.OK);
+    @PostMapping("/availability")
+    public ResponseEntity<TrainAvailabilityDTO> getTrainAvailability(@RequestBody AvailabilityRequestDTO availabilityRequestDTO) {
+        return new ResponseEntity<>(ticketService.getTrainAvailability(availabilityRequestDTO), HttpStatus.OK);
     }
 
-    @GetMapping
+    @GetMapping("/ticket-types")
     public ResponseEntity<List<TicketTypeDTO>> getAllTicketTypes(){
         return new ResponseEntity<>(ticketTypeService.getAllTicketTypes(), HttpStatus.OK);
     }

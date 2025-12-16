@@ -1,5 +1,6 @@
 package com.example.railhub.service;
 
+import com.example.railhub.dto.AvailabilityRequestDTO;
 import com.example.railhub.dto.BookTicketDTO;
 import com.example.railhub.dto.BookTicketsRequestDTO;
 import com.example.railhub.dto.TicketOrderItem;
@@ -91,11 +92,11 @@ public class TicketService {
         return Optional.ofNullable(ticketRepository.countSoldTickets(stationFromId, stationToId, routeId)).orElse(0);
     }
 
-    public TrainAvailabilityDTO getTrainAvailability(Long stationFromId, Long stationToId, Long routeId) {
-        var route = routeRepository.findById(routeId).orElseThrow(() -> new RuntimeException("Route not found"));
+    public TrainAvailabilityDTO getTrainAvailability(AvailabilityRequestDTO availabilityRequestDTO) {
+        var route = routeRepository.findById(availabilityRequestDTO.getRouteId()).orElseThrow(() -> new RuntimeException("Route not found"));
         var train = route.getTrain();
         int capacity = train.getCapacity();
-        int ticketsSold = getSoldTickets(stationFromId, stationToId, routeId);
+        int ticketsSold = getSoldTickets(availabilityRequestDTO.getStationFromId(), availabilityRequestDTO.getStationToId(), availabilityRequestDTO.getRouteId());
         return new TrainAvailabilityDTO(capacity, ticketsSold);
     }
 }
