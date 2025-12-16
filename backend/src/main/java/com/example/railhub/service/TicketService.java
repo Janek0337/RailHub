@@ -1,23 +1,21 @@
 package com.example.railhub.service;
 
-import com.example.railhub.dto.AvailabilityRequestDTO;
-import com.example.railhub.dto.BookTicketDTO;
-import com.example.railhub.dto.BookTicketsRequestDTO;
-import com.example.railhub.dto.TicketOrderItem;
-import com.example.railhub.dto.TrainAvailabilityDTO;
+import com.example.railhub.dto.*;
 import com.example.railhub.entity.Route_Station_ID;
 import com.example.railhub.entity.Ticket;
+import com.example.railhub.mapper.TicketMapper;
 import com.example.railhub.repository.*;
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-@AllArgsConstructor
 public class TicketService {
     private final TicketTypeRepository ticketTypeRepository;
     private final TrainRepository trainRepository;
@@ -25,6 +23,17 @@ public class TicketService {
     private final TicketRepository  ticketRepository;
     private final RouteStationRepository routeStationRepository;
     private final RouteRepository routeRepository;
+    private final TicketMapper ticketMapper;
+
+    public TicketService(TicketTypeRepository ticketTypeRepository, TrainRepository trainRepository, StationRepository stationRepository, TicketRepository ticketRepository, RouteStationRepository routeStationRepository, RouteRepository routeRepository, TicketMapper ticketMapper) {
+        this.ticketTypeRepository = ticketTypeRepository;
+        this.trainRepository = trainRepository;
+        this.stationRepository = stationRepository;
+        this.ticketRepository = ticketRepository;
+        this.routeStationRepository = routeStationRepository;
+        this.routeRepository = routeRepository;
+        this.ticketMapper = ticketMapper;
+    }
 
     public void bookTicket(BookTicketDTO bookTicketDTO) {
         var route = routeRepository.findById(bookTicketDTO.getRouteId()).orElseThrow(() -> new RuntimeException("Route not found"));
@@ -47,7 +56,7 @@ public class TicketService {
         ticketRepository.save(ticketToBook);
     }
 
-    public void bookTickets(BookTicketsRequestDTO bookTicketsRequestDTO) {
+    public List<TicketDTO> bookTickets(BookTicketsRequestDTO bookTicketsRequestDTO) {
         var route = routeRepository.findById(bookTicketsRequestDTO.getRouteId()).orElseThrow(() -> new RuntimeException("Route not found"));
         var train = route.getTrain();
         int capacity = train.getCapacity();
@@ -58,6 +67,8 @@ public class TicketService {
         if (ticketsSold + totalTicketsToBuy > capacity) {
             throw new RuntimeException("No available seats for this train on the selected route.");
         }
+
+        List<Ticket> savedTickets = new ArrayList<>();
 
         for (TicketOrderItem item : bookTicketsRequestDTO.getTickets()) {
             for (int i = 0; i < item.getQuantity(); i++) {
@@ -75,9 +86,12 @@ public class TicketService {
                         bookTicketsRequestDTO.getRouteId(),
                         item.getTicketTypeId()
                 ))));
-                ticketRepository.save(ticketToBook);
+                savedTickets.add(ticketRepository.save(ticketToBook));
             }
         }
+        return savedTickets.stream()
+                .map(ticketMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     private double countPrice(BookTicketDTO bookTicketDTO) {
@@ -97,6 +111,13 @@ public class TicketService {
         var train = route.getTrain();
         int capacity = train.getCapacity();
         int ticketsSold = getSoldTickets(availabilityRequestDTO.getStationFromId(), availabilityRequestDTO.getStationToId(), availabilityRequestDTO.getRouteId());
-        return new TrainAvailabilityDTO(capacity, ticketsSold);
+        return new TrainAvailabilityDTO(availabilityRequestDTO.getRouteId(), capacity, ticketsSold);
+    }
+
+    public List<TrainAvailabilityDTO> getTrainAvailability(List<AvailabilityRequestDTO> availabilityRequestDTOs) {
+        return availabilityRequestDTOs.stream()
+                .map(this::getTrainAvailability)
+                .filter(dto -> dto.getTicketsSold() < dto.getCapacity())
+                .collect(Collectors.toList());
     }
 }

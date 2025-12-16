@@ -144,46 +144,59 @@ export default {
                 })
                 .then(data => {
                     this.searched = true;
-                    const availabilityPromises = data.map(routePath => {
-                        if (!routePath || routePath.length === 0) return Promise.resolve(null);
+
+                    if (data.length === 0) {
+                        this.routes = [];
+                        return;
+                    }
+
+                    const availabilityRequests = data.map(routePath => {
+                        if (!routePath || routePath.length === 0) return null;
                         const startNode = routePath.find(s => s.stationId === this.selectedStationFrom.stationId) || routePath[0];
-                        const url = `http://localhost:6767/browse/availability`;
-                        const body = {
+                        return {
                             stationFromId: this.selectedStationFrom.stationId,
                             stationToId: this.selectedStationTo.stationId,
                             routeId: startNode.routeId
                         };
-                        const headers = {
-                            'Content-Type': 'application/json'
-                        };
-                        return fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(body) }).then(res => res.json());
-                    });
+                    }).filter(req => req !== null);
 
-                    Promise.all(availabilityPromises).then(availabilities => {
-                        this.routes = data.map((routePath, index) => {
-                            if (!routePath || routePath.length === 0) return null;
+                    const url = `http://localhost:6767/browse/availability`;
+                    const headers = { 'Content-Type': 'application/json' };
 
-                            const startNode = routePath.find(s => s.stationId === this.selectedStationFrom.stationId) || routePath[0];
-                            const endNode = routePath.find(s => s.stationId === this.selectedStationTo.stationId) || routePath[routePath.length - 1];
+                    fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(availabilityRequests) })
+                        .then(res => res.json())
+                        .then(availabilities => {
+                            const availableRouteIds = new Set(availabilities.map(a => a.routeId));
+                            const availabilityMap = new Map(availabilities.map(a => [a.routeId, a]));
 
-                            const startStation = this.allStations.find(s => s.stationId === startNode.stationId);
-                            const endStation = this.allStations.find(s => s.stationId === endNode.stationId);
-                            const availability = availabilities[index];
+                            const availableRoutesData = data.filter(routePath => {
+                                if (!routePath || routePath.length === 0) return false;
+                                const startNode = routePath.find(s => s.stationId === this.selectedStationFrom.stationId) || routePath[0];
+                                return availableRouteIds.has(startNode.routeId);
+                            });
 
-                            return {
-                                routeId: startNode.routeId,
-                                startStationName: startStation ? startStation.stationName : 'Stacja ' + startNode.stationId,
-                                endStationName: endStation ? endStation.stationName : 'Stacja ' + endNode.stationId,
-                                departureTime: startNode.departureTime,
-                                arrivalTime: endNode.arrivalTime,
-                                trainName: startNode.trainName,
-                                ticketCount: availability ? availability.capacity : 0,
-                                takenTicketCount: availability ? availability.ticketsSold : 0,
-                                kilometerFrom: startNode.routeKilometer,
-                                kilometerTo: endNode.routeKilometer
-                            };
-                        }).filter(r => r !== null);
-                    });
+                            this.routes = availableRoutesData.map(routePath => {
+                                const startNode = routePath.find(s => s.stationId === this.selectedStationFrom.stationId) || routePath[0];
+                                const endNode = routePath.find(s => s.stationId === this.selectedStationTo.stationId) || routePath[routePath.length - 1];
+
+                                const startStation = this.allStations.find(s => s.stationId === startNode.stationId);
+                                const endStation = this.allStations.find(s => s.stationId === endNode.stationId);
+                                const availability = availabilityMap.get(startNode.routeId);
+
+                                return {
+                                    routeId: startNode.routeId,
+                                    startStationName: startStation ? startStation.stationName : 'Stacja ' + startNode.stationId,
+                                    endStationName: endStation ? endStation.stationName : 'Stacja ' + endNode.stationId,
+                                    departureTime: startNode.departureTime,
+                                    arrivalTime: endNode.arrivalTime,
+                                    trainName: startNode.trainName,
+                                    ticketCount: availability.capacity,
+                                    takenTicketCount: availability.ticketsSold,
+                                    kilometerFrom: startNode.routeKilometer,
+                                    kilometerTo: endNode.routeKilometer
+                                };
+                            });
+                        });
                 })
                 .catch(err => console.error("Błąd podczas wyszukiwania tras:", err));
         },

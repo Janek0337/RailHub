@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrainAvailabilityDTO {
+    private Long routeId;
     private int capacity;
     private int ticketsSold;
 }

@@ -35,14 +35,14 @@ public class PublicController {
     }
 
     @PostMapping("/tickets")
-    public ResponseEntity<Void> bookTickets(@RequestBody BookTicketsRequestDTO bookTicketsRequestDTO) {
-        ticketService.bookTickets(bookTicketsRequestDTO);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public ResponseEntity<List<TicketDTO>> bookTickets(@RequestBody BookTicketsRequestDTO bookTicketsRequestDTO) {
+        List<TicketDTO> savedTickets = ticketService.bookTickets(bookTicketsRequestDTO);
+        return ResponseEntity.ok(savedTickets);
     }
 
     @PostMapping("/availability")
-    public ResponseEntity<TrainAvailabilityDTO> getTrainAvailability(@RequestBody AvailabilityRequestDTO availabilityRequestDTO) {
-        return new ResponseEntity<>(ticketService.getTrainAvailability(availabilityRequestDTO), HttpStatus.OK);
+    public ResponseEntity<List<TrainAvailabilityDTO>> getTrainAvailability(@RequestBody List<AvailabilityRequestDTO> availabilityRequestDTOs) {
+        return new ResponseEntity<>(ticketService.getTrainAvailability(availabilityRequestDTOs), HttpStatus.OK);
     }
 
     @GetMapping("/ticket-types")
